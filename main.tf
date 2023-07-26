@@ -153,7 +153,7 @@ resource "local_file" "private_key_pem" {
 }
 
 resource "aws_s3_bucket" "my-new-S3-bucket" {
-  bucket = "my-new-tf-test-bucket-${random_id.randomness.id}"
+  bucket = "my-new-tf-test-bucket-${random_password.randomness.id}"
   acl    = "private"
   tags = {
     Name    = "My S3 Bucket"
@@ -178,6 +178,19 @@ resource "aws_security_group" "my-new-security-group" {
   }
 }
 
-resource "random_id" "randomness" {
-  byte_length = 16
+resource "random_password" "randomness" {
+  length  = 4
+  upper   = false
+  special = false
+}
+
+resource "aws_subnet" "variables-subnet" {
+  vpc_id                  = aws_vpc.vpc.id
+  cidr_block              = "10.0.250.0/24"
+  availability_zone       = "eu-north-1a"
+  map_public_ip_on_launch = true
+  tags = {
+    Name      = "sub-variables-eu-north-1a"
+    Terraform = "true"
+  }
 }
