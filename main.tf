@@ -177,3 +177,7 @@ resource "aws_security_group" "my-new-security-group" {
     Purpose = "Intro to Resource Blocks Lab"
   }
 }
+
+resource "random_id" "randomness" {
+  byte_length = 16
+}
