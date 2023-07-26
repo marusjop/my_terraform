@@ -153,15 +153,12 @@ resource "local_file" "private_key_pem" {
 }
 
 resource "aws_s3_bucket" "my-new-S3-bucket" {
-  bucket = "my-new-tf-test-bucket-bryan"
-  # acl    = "private"
+  bucket = "my-new-tf-test-bucket-marek"
+  acl    = "private"
   tags = {
     Name    = "My S3 Bucket"
     Purpose = "Intro to Resource Blocks Lab"
   }
 }
 
-resource "aws_s3_bucket_acl" "example" {
-  bucket = aws_s3_bucket.my-new-S3-bucket.id
-  acl    = "private"
-}
+
