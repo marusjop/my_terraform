@@ -46,5 +46,5 @@ variable "variables_sub_auto_ip" {
 }
 
 variable "environment" {
-  default = data.aws_region.current
+  default = "eu-north-1"
 }
