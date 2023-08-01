@@ -16,6 +16,7 @@ resource "aws_vpc" "vpc" {
     Name        = var.vpc_name
     Environment = "demo_environment"
     Terraform   = "true"
+    Region      = data.aws_region.current.name
   }
 }
 
@@ -59,34 +60,34 @@ resource "aws_route_table" "public_route_table" {
     Terraform = "true"
   }
 }
-resource "aws_route_table" "private_route_table" {
-  vpc_id = aws_vpc.vpc.id
-  route {
-    cidr_block = "0.0.0.0/0"
-    # gateway_id = aws_internet_gateway.internet_gateway.id
-    nat_gateway_id = aws_nat_gateway.nat_gateway.id
-  }
-  tags = {
-    Name      = "demo_private_rtb"
-    Terraform = "true"
-  }
-}
+# resource "aws_route_table" "private_route_table" {
+#   vpc_id = aws_vpc.vpc.id
+#   route {
+#     cidr_block = "0.0.0.0/0"
+#     # gateway_id = aws_internet_gateway.internet_gateway.id
+#     nat_gateway_id = aws_nat_gateway.nat_gateway.id
+#   }
+#   tags = {
+#     Name      = "demo_private_rtb"
+#     Terraform = "true"
+#   }
+# }
 
 #Create route table associations
 
-resource "aws_route_table_association" "public" {
-  depends_on     = [aws_subnet.public_subnets]
-  route_table_id = aws_route_table.public_route_table.id
-  for_each       = aws_subnet.public_subnets
-  subnet_id      = each.value.id
-}
+# resource "aws_route_table_association" "public" {
+#   depends_on     = [aws_subnet.public_subnets]
+#   route_table_id = aws_route_table.public_route_table.id
+#   for_each       = aws_subnet.public_subnets
+#   subnet_id      = each.value.id
+# }
 
-resource "aws_route_table_association" "private" {
-  depends_on     = [aws_subnet.private_subnets]
-  route_table_id = aws_route_table.private_route_table.id
-  for_each       = aws_subnet.private_subnets
-  subnet_id      = each.value.id
-}
+# resource "aws_route_table_association" "private" {
+#   depends_on     = [aws_subnet.private_subnets]
+#   route_table_id = aws_route_table.private_route_table.id
+#   for_each       = aws_subnet.private_subnets
+#   subnet_id      = each.value.id
+# }
 
 #Create Internet Gateway
 resource "aws_internet_gateway" "internet_gateway" {
@@ -107,15 +108,15 @@ resource "aws_eip" "nat_gateway_eip" {
 }
 
 # #Create NAT Gateway
-resource "aws_nat_gateway" "nat_gateway" {
-  depends_on    = [aws_subnet.public_subnets]
-  allocation_id = aws_eip.nat_gateway_eip.id
-  subnet_id     = aws_subnet.public_subnets["public_subnet_1"].id
+# resource "aws_nat_gateway" "nat_gateway" {
+#   depends_on    = [aws_subnet.public_subnets]
+#   allocation_id = aws_eip.nat_gateway_eip.id
+#   subnet_id     = aws_subnet.public_subnets["public_subnet_1"].id
 
-  tags = {
-    Name = "demo_nat_gateway"
-  }
-}
+#   tags = {
+#     Name = "demo_nat_gateway"
+#   }
+# }
 
 # Terraform Data Block - To Lookup Latest Ubuntu 20.04 AMI Image
 data "aws_ami" "ubuntu" {
@@ -139,6 +140,7 @@ resource "aws_instance" "web_server" {
     Name  = local.server_name
     Owner = local.team
     App   = local.application
+    Cos   = data.aws_region.current.name
   }
 }
 
@@ -152,53 +154,58 @@ resource "aws_instance" "web" {
   }
 }
 
-resource "tls_private_key" "generated" {
-  algorithm = "RSA"
-}
-resource "local_file" "private_key_pem" {
-  content  = tls_private_key.generated.private_key_pem
-  filename = "MyAWSKey.pem"
+output "public_url" {
+  value = "https://${aws_instance.web_server.private_ip}:8080/index.html"
 }
 
-resource "aws_s3_bucket" "my-new-S3-bucket" {
-  bucket = "my-new-tf-test-bucket-${random_password.randomness.id}"
-  acl    = "private"
-  tags = {
-    Name    = "My S3 Bucket"
-    Purpose = "Intro to Resource Blocks Lab"
-  }
-}
 
-resource "aws_security_group" "my-new-security-group" {
-  name        = "web_server_inbound"
-  description = "Allow inbound traffic on tcp/443"
-  vpc_id      = aws_vpc.vpc.id
-  ingress {
-    description = "Allow 443 from the Internet"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  tags = {
-    Name    = "web_server_inbound"
-    Purpose = "Intro to Resource Blocks Lab"
-  }
-}
+# resource "tls_private_key" "generated" {
+#   algorithm = "RSA"
+# }
+# resource "local_file" "private_key_pem" {
+#   content  = tls_private_key.generated.private_key_pem
+#   filename = "MyAWSKey.pem"
+# }
 
-resource "random_password" "randomness" {
-  length  = 4
-  upper   = false
-  special = false
-}
+# resource "aws_s3_bucket" "my-new-S3-bucket" {
+#   bucket = "my-new-tf-test-bucket-${random_password.randomness.id}"
+#   acl    = "private"
+#   tags = {
+#     Name    = "My S3 Bucket"
+#     Purpose = "Intro to Resource Blocks Lab"
+#   }
+# }
 
-resource "aws_subnet" "variables-subnet" {
-  vpc_id                  = aws_vpc.vpc.id
-  cidr_block              = var.variables_sub_cidr
-  availability_zone       = var.variables_sub_az
-  map_public_ip_on_launch = var.variables_sub_auto_ip
-  tags = {
-    Name      = "sub-variables-${var.variables_sub_az}"
-    Terraform = "true"
-  }
-}
+# resource "aws_security_group" "my-new-security-group" {
+#   name        = "web_server_inbound"
+#   description = "Allow inbound traffic on tcp/443"
+#   vpc_id      = aws_vpc.vpc.id
+#   ingress {
+#     description = "Allow 443 from the Internet"
+#     from_port   = 443
+#     to_port     = 443
+#     protocol    = "tcp"
+#     cidr_blocks = ["0.0.0.0/0"]
+#   }
+#   tags = {
+#     Name    = "web_server_inbound"
+#     Purpose = "Intro to Resource Blocks Lab"
+#   }
+# }
+
+# resource "random_password" "randomness" {
+#   length  = 4
+#   upper   = false
+#   special = false
+# }
+
+# resource "aws_subnet" "variables-subnet" {
+#   vpc_id                  = aws_vpc.vpc.id
+#   cidr_block              = var.variables_sub_cidr
+#   availability_zone       = var.variables_sub_az
+#   map_public_ip_on_launch = var.variables_sub_auto_ip
+#   tags = {
+#     Name      = "sub-variables-${var.variables_sub_az}"
+#     Terraform = "true"
+#   }
+# }
