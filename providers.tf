@@ -1,9 +1,12 @@
 terraform {
   required_version = ">= 1.0.0"
+  # backend "local" {
+  #   path = "mystate/terraform.tfstate"
+  # }
   required_providers {
     aws = {
-      source  = "hashicorp/aws"
-      version = "~> 3.0"
+      source = "hashicorp/aws"
+      # version = "~> 3.0"
     }
     http = {
       source = "hashicorp/http"
@@ -26,5 +29,10 @@ terraform {
 
 provider "aws" {
   region = "eu-north-1"
+  default_tags {
+    tags = {
+      environment = terraform.workspace
+    }
+  }
 }
 
