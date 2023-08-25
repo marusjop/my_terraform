@@ -3,6 +3,14 @@ terraform {
   # backend "local" {
   #   path = "mystate/terraform.tfstate"
   # }
+  backend "s3" {
+    bucket = "marekj-bucket"
+    key    = "prod/aws_infra"
+    region = "eu-north-1"
+
+    dynamodb_table = "terraform-locks"
+    encrypt        = true
+  }
   required_providers {
     aws = {
       source = "hashicorp/aws"
