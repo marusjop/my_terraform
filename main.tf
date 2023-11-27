@@ -5,7 +5,7 @@ data "aws_region" "current" {}
 locals {
   team        = "api_mgmt_dev"
   application = "corp_api"
-  server_name = "ec2-${var.environment}-api-${var.variables_sub_az}"
+  server_name = "ec2-${var.environment}-aapi-${var.variables_sub_az}"
 }
 
 #Define the VPC
